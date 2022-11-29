@@ -1,0 +1,696 @@
+
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+---
+# IDS 572 Data Mining Assignment 3 
+## Aashish Bomma(650563462), Vishal Brahmananda(678517159)
+title: "DM_Assignment_2"
+author: "Vishal_Brahmanada(678517159), Aashish Bomma(650563462)"
+date: "2022-11-11"
+output: pdf_document
+
+## Question 1:
+
+### Do you think the Beneish model developed in 1999 will still be relevant to Indian data?**
+
+### Solution:
+
+After Analyzing the dataset, we have found that:
+
+The number of observations for Manipulator's =39
+
+The number of observations for Non-Manipulator's =1200
+
+In this instance, there are much less observations belonging to "Manipulators" (i.e., 39) than "Non-Manipulators" (1200). The number of "Manipulators" represents around 3.14% of the total data gathered, making the final dataset severely imbalanced.
+
+The Beneish Model, sometimes referred to as the "M-Score Model," is a crucial financial analytics model used to determine the extent of "Earnings Manipulation’.
+The parameter utilized in the Beneish model is the M-score which is used to classify Manipulators / Non-Manipulators.
+
+The original M-score was determined using the formula below:
+
+**M = -4.84 + 0.92 DSRI + 0.528 GMI + 0.404 AQI + 0.892 SGI + 0.115 DEPI– 0.172 SGAI + 4.679 TATA – 0.327 LVGI**
+
+
+*The Benish model will categorize the scope of earning manipulation based on M-Score:*
+
+*if M-Score > -1.78, then there is a high probability of earning Manipulators*
+*if M-Score <= -1.78, then Non-Manipulators*
+
+*Let's calculate the M-Score for the complete dataset:*
+```{r}
+library(readxl)
+complete_data_set<- read_excel("C:/Users/vbrahm7/Documents/DM_Assignment_3/IMB579-XLS-ENG.xlsx",sheet="Complete Data")
+
+data_set<-complete_data_set
+data_set$Mscore<-((-4.84+(0.92*data_set$DSRI)+(0.528* data_set$GMI) +(0.404* data_set$AQI)+(0.892*data_set$SGI) + (0.115* data_set$DEPI)
+-(0.172*data_set$SGAI)+(4.679*data_set$ACCR)-0.327*data_set$LEVI))
+data_set$Beneish_predictions <- NA
+data_set$Beneish_predictions[data_set$Mscore > -1.78] <- 1
+data_set$Beneish_predictions[data_set$Mscore <= -1.78] <- 0
+sum(is.na(data_set$Beneish_predictions))
+table1 <- table(data_set$Beneish_predictions, data_set$`C-MANIPULATOR`,
+             dnn = c("Predicted", "Actual"))
+
+library(caret)
+confusionMatrix(table1, positive = "1" )
+```
+
+*As we can see from the above output of Confusion Matrix, we can see that the accuracy of the model is approximately 85%, which is a good performance.However, in this case the data is unbalanced, and the class of interest (class=1) is a minority classs, we have to consider the performance of the model to correctly predict the class of interest.Considering the class of interest as positive class,we need to focus on the sensitivity value of the model.*
+*In in case, the sensitivity for the beneish model is around 79%.Thus, we can say that Beneish model is not relevant to the indian data under as it does not take the the issue of unbalanced data into consideration.*
+
+*In this kind of situation, where there is a imbalance in the class, We can make use of some of the Machine Learning Algorithms (ie. Classification Trees, Logistic Regression) because they give better accuracy values compared to the Beneish model for such unbalanced data.*
+
+
+## Question 2:
+
+### The number of manipulators is usually much less than non-manipulators (in the accompanying spreadsheet, the percentage of manipulators is less than 4% in the complete data). What kind of modeling problems can one expect when cases in one class are much lower than the other class in a binary classification problem? How can one handle these problems? – To answer this question: Watch “balancing data in R” video uploaded under “R documents”.
+
+### Solution:
+
+This problem is known as Class-imbalance problem.
+
+In such situation,getting a model that performs well is difficult. 
+
+**In these cases, we may face the Following problems:**
+
+i) They concentrate on and tend to predict just the data from the majority class, ignoring the data from the minority class by treating it as noise.
+
+ii) The common classifier algorithms don't focus on the data's structure, only on minimizing errors.
+
+iii)Models created using conventional statistical techniques (such as Logistics Regression and Decision Tree) do not perform well in such situations because they may be biased because they do not take into account the proportion of classes in the data.
+
+iv) Additionally, when used with unbalanced datasets, the traditional approaches for model evaluation do not appropriately assess model performance.
+
+**We can use a variety of strategies to address the issue of class imbalance.**
+
+**1. Resampling Techniques:**
+
+**a) Random Under-Sampling:**
+
+->By arbitrarily removing examples from the dominant class, it balances the data.
+
+->It can improve the run time when dataset is huge.
+
+**b) Random Over-Sampling:**
+
+->By randomly replicating them, this raises the number of examples of minority class.
+
+->Better than under sampling. There is no information loss.
+
+
+**c) Modified synthetic minority oversampling technique (MSMOTE):**
+
+->This algorithm classifies the samples of minority classes into 3 distinct groups – Security/Safe samples, Border samples, and latent
+nose samples.
+
+-> The algorithm randomly selects a data point from the k nearest neighbors for the security s ample, selects the nearest neighbor from
+the border samples and does nothing for latent noise.
+
+**2. Algorithmic Ensemble Techniques**
+
+**a) Bagging Based:**
+
+->creates various training samples (with replacement), applies the bootstrapped algorithm to each sample, then aggregates the results.
+
+->Reduces over-fitting.
+
+-> Reduces variance.
+
+**b)  Boosting-Based:**
+
+**Adaptive Boosting- Ada Boost:**
+
+-> Adaboost either requires the users to specify a set of weak learners or randomly generates the weak learners before the actual learning
+process.
+
+-> The weight of each learner is adjusted at every step depending on whether it predicts a sample correctly.
+
+**Gradient Tree Boosting:**
+
+-> Each model minimizes the loss function.
+
+-> Here, each models are trained sequentially.
+
+## Question 3:
+
+### Use a sample data (220 cases including 39 manipulators) and develop a logistic regression model that can be used by MCA Technologies Private Limited for predicting probability of earnings manipulation.
+
+### Solution: 
+
+```{r}
+library(readxl)
+sample_data_set<- read_excel("C:/Users/vbrahm7/Documents/DM_Assignment_3/IMB579-XLS-ENG.xlsx",sheet="Sample for Model Development")
+##View(sample_data_set)
+dim(sample_data_set)
+str(sample_data_set)
+summary(sample_data_set)
+```
+
+```{r}
+sample_set <- sample_data_set
+sample_set$`C-MANIPULATOR`<-as.factor(sample_set$`C-MANIPULATOR`)
+class(sample_set$`C-MANIPULATOR`)
+```
+
+```{r}
+sample_set$`Company ID` <- NULL
+sample_set$Manipulator <- NULL
+
+colnames(sample_set)[9] <- "C_MANIPULATOR"
+```
+
+```{r}
+table2 <- table(sample_set$C_MANIPULATOR)
+table2
+```
+
+We can see from the results values in the table above that there are significantly less observations for the event class than for the other classes of the target variable.
+
+This gives us the indication that the dataset is unbalenced.
+
+#### Classification before data balancing:
+
+```{r}
+set.seed(1234)
+index_value <- sample(2, nrow(sample_set), replace = TRUE, prob = c(0.65,0.35))
+sample_train_data <- sample_set[index_value == 1,]
+sample_test_data <- sample_set[index_value == 2,]
+
+table3 <- table(sample_train_data$C_MANIPULATOR)
+table3
+```
+
+#### Now we will use the logestic regression model
+
+```{r}
+null_selection <-glm(C_MANIPULATOR~1, data = sample_train_data, family = binomial) 
+full_selection <-glm(C_MANIPULATOR~., data = sample_train_data, family = binomial)
+
+## Forward Selection for the model
+step(null_selection, scope=list(lower=null_selection, upper=full_selection), direction="forward")
+```
+From the above output we can see that the important variables DSRI, ACCR, AQI. So, we will use only these important variables to run logestic regression test
+```{r}
+## Running Logistic Regression model
+logistic_regression_model_imp_Var <- glm(C_MANIPULATOR~DSRI + SGI + ACCR + AQI, data= sample_train_data, family ="binomial")
+summary(logistic_regression_model_imp_Var)
+logistic_regression_model_imp_Var$null.deviance-logistic_regression_model_imp_Var$deviance
+```
+
+## Question 4
+
+### What measure do you use to evaluate the performance of your logistic regression model? How does your model perform on the training and test datasets?
+
+### Solution:
+
+**To evaluate the performance of the logistic regression model on the train data, we check result measures of Null deviance, Residual deviance, AIC,Difference of Null deviance and Residual Deviance.**
+
+**To evaluate the performance of the logistic regression model on the test data, we check result measures of Sensitivity and Accuracy.**
+
+
+From the above output:
+
+Null deviance: 148.581  on 152  degrees of freedom
+
+Residual deviance:  89.691  on 148  degrees of freedom
+
+AIC: 99.691
+
+Difference of Null deviance and Residual Deviance: 58.89034
+
+
+**We will now measure the performance and accuracy of the test data model**
+
+```{r}
+predict_target <- predict.glm(logistic_regression_model_imp_Var, sample_test_data, type = "response")
+```
+
+ROC PLOT
+```{r}
+library(ROCR)
+predicted_roc= prediction(predict_target, sample_test_data$C_MANIPULATOR)
+performance_roc = performance(predicted_roc,"tpr","fpr")
+
+plot(performance_roc, col = "red", lty = 2.5, lwd = 2.5)
+
+AUC <-performance(predicted_roc, "auc")
+
+AUC <-unlist(slot(AUC, "y.values"))
+
+min_auc <-min(round(AUC, digits = 2))
+max_auc <-max(round(AUC, digits = 2))
+min_auct <-paste(c("min(AUC) = "), min_auc, sep = "")
+max_auct <-paste(c("max(AUC) = "), max_auc, sep = "")
+legend(0.7, 0.3, c(min_auct, max_auct, "\n"),border = "pink", cex = 0.6, box.col = "white")
+abline(a= 0, b=1)
+
+optimal_cut <-function(performance_roc, predicted_roc){
+  cut_ind <-mapply(FUN=function(x, y, p){
+    d <-(x - 0)^2 + (y-1)^2
+    ind <-which(d == min(d))
+    c(sensitivity = y[[ind]], specificity = 1-x[[ind]], cutoff = p[[ind]])
+  }, performance_roc@x.values, performance_roc@y.values, predicted_roc@cutoffs)}
+
+print(optimal_cut(performance_roc, predicted_roc))
+```
+
+```{r}
+library(caret)
+predict_target1 <- ifelse(predict_target>0.1442311,1,0)
+p1_table<-table(predict_target1, sample_test_data$C_MANIPULATOR, dnn = c("Predicted","Actual"))
+confusionMatrix(p1_table,positive = "1")
+```
+
+Sensitivity : 0.8000
+Accuracy : 0.806
+
+## Question 5
+
+### What is the best probability threshold that can be used to assign instances to different classes? Write two functions that receive the output of the ROC performance function and return the best probability thresholds using the distance to (0,1) and Youden’s approach respectively.
+
+### Solution:
+
+The two approaches that receive the output of the ROC performance function and return the best probability thresholds using the distance to (0,1) and Youden’s approach respectively are:
+
+#### 1. Over sampling Method:
+
+```{r}
+library(ROSE)
+
+over_sampling <- ovun.sample(C_MANIPULATOR~., data = sample_train_data,method = "over", N= 248)$data
+table(over_sampling$C_MANIPULATOR)
+
+## Logistic Regression
+null_variable = glm(C_MANIPULATOR~1, data= over_sampling, family = "binomial") # Includes only the intercept
+full_variable = glm(C_MANIPULATOR~., data= over_sampling, family = "binomial")
+#Forward Selection
+step(null_variable, scope=list(lower=null_variable, upper=full_variable), direction="forward")
+
+logistic_regression_model_bal<- glm(C_MANIPULATOR ~ DSRI + SGI + AQI + ACCR + LEVI + GMI, data= over_sampling,family = "binomial")
+summary(logistic_regression_model_bal)
+```
+
+```{r}
+logistic_regression_model_bal$null.deviance-logistic_regression_model_bal$deviance
+
+predict_test_balance <-predict.glm(logistic_regression_model_bal, newdata = sample_test_data, type="response")
+
+## Calculating the values of ROC Curve
+predict_ROC_bal <-prediction(predict_test_balance,sample_test_data$C_MANIPULATOR)
+
+performance_bal <-performance(predict_ROC_bal,"tpr","fpr")
+
+## Plotting ROC curve
+plot(performance_bal, col = "red", lty = 2.5, lwd = 2.5)
+
+## Calculating AUC
+AUC1 <-performance(predict_ROC_bal, "auc")
+AUC1 <-unlist(slot(AUC1, "y.values"))
+
+## Adding min and max ROC AUC to the center of the plot
+min_auc1 <-min(round(AUC1, digits = 2))
+max_auc1 <-max(round(AUC1, digits = 2))
+min_auct1 <-paste(c("min(AUC) = "), min_auc1, sep = "")
+max_auct1 <-paste(c("max(AUC) = "), max_auc1, sep = "")
+legend(0.7, 0.3, c(min_auct1, max_auct1, "\n"),border = "pink", cex = 0.6, box.col = "white")
+abline(a= 0, b=1)
+
+## Getting an optimal cut point
+optimal_cut1 <-function(performance_bal, predict_ROC_bal){
+  cut_ind1 <-mapply(FUN=function(x, y, p){
+    d1 <-(x - 0)^2 + (y-1)^2
+    ind1 <-which(d1 == min(d1))
+    c(sensitivity = y[[ind1]], specificity = 1-x[[ind1]], cutoff = p[[ind1]])
+  }, performance_bal@x.values, performance_bal@y.values, predict_ROC_bal@cutoffs)}
+
+print(optimal_cut1(performance_bal, predict_ROC_bal))[3,1]
+
+youden_model <- performance_bal@y.values[[1]]-performance_bal@x.values[[1]]
+ind <- which (youden_model == max(youden_model))
+optimal_cut2 <- predict_ROC_bal@cutoffs[[1]][ind]
+print(optimal_cut2)
+
+##
+predict_target_bal <- ifelse(predict_test_balance>0.1442311,1,0)
+p_table1<-table(predict_target_bal, sample_test_data$C_MANIPULATOR, dnn = c("Predicted","Actual"))
+p_table1
+confusionMatrix(p_table1,positive = "1")
+```
+**Sensitivity : 1.00**
+
+**Accuracy : 0.597**
+
+#### 'SMOTE' Approch
+
+```{r}
+library(DMwR)
+library(UBL)
+SMOTE_data <- SmoteClassif(C_MANIPULATOR~., as.data.frame(sample_train_data),C.perc = "balance",dist="HEOM")
+table(SMOTE_data$C_MANIPULATOR)
+
+## Logistic Regression with variable selection
+
+null_value <- glm(C_MANIPULATOR~1, data= SMOTE_data, family = "binomial")
+full_value <- glm(C_MANIPULATOR~., data= SMOTE_data, family = "binomial")
+##Forward selection
+step(null_value, scope=list(lower=null_value, upper=full_value), direction="forward")
+
+l_r_bal_model<- glm(C_MANIPULATOR ~ ACCR + DSRI + SGI + AQI + LEVI + DEPI + GMI,
+                   data= SMOTE_data, family = "binomial")
+
+summary(l_r_bal_model)
+```
+
+```{r}
+l_r_bal_model$null.deviance-l_r_bal_model$deviance
+
+predict_bal_test <-predict.glm(l_r_bal_model, newdata = sample_test_data, type="response")
+
+## Calculating the values for ROC Curve
+
+predict_ROC_bal <-prediction(predict_bal_test,sample_test_data$C_MANIPULATOR)
+
+performance_ROC_bal = performance(predict_ROC_bal,"tpr","fpr")
+## plotting the ROC Curve
+plot(performance_ROC_bal, col = "red", lty = 3, lwd = 3)
+
+##Calculating AUC
+auc_calc<-performance(predict_ROC_bal,"auc")
+
+auc_calc <-unlist(slot(auc_calc, "y.values"))
+
+# Adding min and max ROC AUC to the center of the plot
+min_auc2 <-min(round(auc_calc, digits = 2))
+max_auc2 <-max(round(auc_calc, digits = 2))
+minauct <-paste(c("min(AUC) = "), min_auc2, sep = "")
+maxauct = paste(c("max(AUC) = "), max_auc2, sep = "")
+legend(0.7, 0.3, c(minauct, maxauct, "\n"), border = "white", cex = 0.5, box.col = "white")
+abline(a= 0, b=1)
+
+opt_cut3 <-function(performance_ROC_bal, predict_ROC_bal){
+  cut_ind <-mapply(FUN=function(x, y, p){
+    d = (x - 0)^2 + (y-1)^2
+    ind = which(d == min(d))
+    c(sensitivity = y[[ind]], specificity = 1-x[[ind]],
+      cutoff = p[[ind]])
+  }, performance_ROC_bal@x.values, performance_ROC_bal@y.values, predict_ROC_bal@cutoffs)}
+
+print(opt_cut3(performance_ROC_bal, predict_ROC_bal))
+
+youden_model_2 <- performance_ROC_bal@y.values[[1]]-performance_ROC_bal@x.values[[1]]
+ind <- which (youden_model_2 == max(youden_model_2))
+optimal_cut3 <- predict_ROC_bal@cutoffs[[1]][ind]
+print(optimal_cut3)
+
+predict_test_bal <-ifelse(predict_bal_test>0.2835403,1,0)
+
+p_table2<-table(predict_test_bal, sample_test_data$C_MANIPULATOR, dnn = c("Predicted","Actual"))
+```
+
+```{r}
+library(robustbase)
+library(caret)
+confusionMatrix(p_table2,positive = "1")
+```
+**Sensitivity : 0.8000**
+
+**Accuracy : 0.7761**
+
+From the above observations of results, we can say that the over sampling technique is the most effective approach to balance the sample data.
+
+The logistic regression algorithm gives the highest sensitivity in the case of over sampling approach.
+
+## Question 6
+
+### Based on the models developed in questions 4 and 5, suggest a M-score (Manipulator score) that can be used by regulators to identify potential manipulators.
+
+### Solution:
+
+As per the figure avove in question 5, we see that the "balanced oversampled data" model gives the best performance for the threshold of 0.5165457.
+
+This Threshold or cut-off point (alpha) = 0.5165457
+
+M-Score = ln(apha/(1+alpha)) = **-1.077**
+
+Hence, if the M-Score> -1.077, it means Manuplulators
+if the M-Score<= -1.077, then Non- Manipulators
+
+
+## Question 7
+
+### Develop a decision tree model. What insights do you obtain from the tree model?
+
+### Solution:
+
+Decision tree for sample data:
+
+```{r}
+library(partykit)
+library(rpart)
+library(rpart.plot)
+library(caret)
+decision_tree_bal_full <-rpart(C_MANIPULATOR~., data = SMOTE_data,control= rpart.control(cp= -1, minsplit = 0,minbucket = 0 ),parms = list(split="gini"))
+print(decision_tree_bal_full)
+rpart.plot(decision_tree_bal_full)
+printcp(decision_tree_bal_full) 
+opt1 <-which.min(decision_tree_bal_full$cptable[ ,"xerror"])
+opt1
+```
+
+```{r}
+cp<-decision_tree_bal_full$cptable[opt1, "CP"]
+cp
+```
+
+```{r}
+decision_tree_balanced_pruned <- prune(decision_tree_bal_full, cp = cp)
+```
+
+```{r}
+summary(decision_tree_balanced_pruned)
+decision_tree_balanced_pruned$variable.importance
+decision_tree_balanced_pruned$splits
+```
+
+```{r}
+dt_train_table<-table(predict(decision_tree_balanced_pruned,type="class"),SMOTE_data$C_MANIPULATOR, dnn =c("Predicted","Actual"))
+confusionMatrix(dt_train_table, positive = "1")
+```
+
+```{r}
+dt_train_table<-table(predict(decision_tree_balanced_pruned,type="class"),SMOTE_data$C_MANIPULATOR, dnn =c("Predicted","Actual"))
+confusionMatrix(dt_train_table, positive = "1")
+print(decision_tree_bal_full)
+```
+
+**The following are the insights from the decision tree:**
+
+1. At the top, it is the "Leverage Index(LVGI)". 50% of the data are less than 0.85.
+
+2. If LVGI value is less than 0.85, then we go down to the root's right side "Accurals to Total Assests(ACCR)". 31% of the data have ACCR<0.012 with a support of 83%.
+
+3. If LVGI value is greater than or equal to 0.85, then we go down to the root's left side "Sales Growth Index(SGI)". 69% of the data has SGI>=0.5 with a support of 35%.
+
+
+## Question 8
+
+### Develop a logistic regression model using the complete data set (1200 non-manipulators and 39 manipulators), compare the results with the previous logistic regression model and comment on differences.
+
+### Solution:
+
+#### Balancing the data using oversampling
+
+```{r}
+library(readxl)
+library(ROSE)
+complete_data<- read_excel("C:/Users/vbrahm7/Documents/DM_Assignment_3/IMB579-XLS-ENG.xlsx",sheet="Complete Data")
+```
+
+```{r}
+complete_data$`Company ID`<- NULL
+complete_data$Manipulater<- NULL
+
+colnames(complete_data)[9]<-"C_MANIPULATOR"
+```
+
+```{r}
+Complete_final_data <- complete_data
+Complete_final_data$C_MANIPULATOR <- as.factor(Complete_final_data$C_MANIPULATOR)
+class(Complete_final_data$C_MANIPULATOR)
+
+table(Complete_final_data$C_MANIPULATOR)
+```
+
+```{r}
+set.seed(1234)
+index2 <-sample(2, nrow(Complete_final_data), replace = TRUE, prob = c(0.65,0.35))
+train_Data <-Complete_final_data[index2 == 1, ]
+table(train_Data$C_MANIPULATOR)
+test_Data <-Complete_final_data[index2 == 2,]
+table(test_Data$C_MANIPULATOR)
+```
+
+```{r}
+complete_bal_data <- ovun.sample(C_MANIPULATOR~.,data = train_Data,method = "over", N=1566)$data
+table(complete_bal_data$C_MANIPULATOR)
+```
+
+```{r}
+##variable selection
+null3 <-glm(C_MANIPULATOR~1, data= complete_bal_data, family = "binomial") 
+full3 <- glm(C_MANIPULATOR~., data= complete_bal_data, family = "binomial")
+#Forward Selection
+step(null3, scope=list(lower=null3, upper=full3), direction="forward")
+```
+
+```{r}
+lr_bal_complete<- glm(C_MANIPULATOR ~ DSRI + ACCR + SGI + AQI, data= complete_bal_data,family = "binomial")
+summary(lr_bal_complete)
+```
+
+```{r}
+lr_bal_complete$null.deviance-lr_bal_complete$deviance
+```
+
+```{r}
+pred_complete <-predict.glm(lr_bal_complete, newdata = complete_bal_data, type="response")
+```
+
+```{r}
+# Calculating the values for ROC curve
+predict_ROC <-prediction(pred_complete,complete_bal_data$C_MANIPULATOR)
+performance_complete <-performance(predict_ROC,"tpr","fpr")
+# Plotting the ROC curve
+plot(performance_complete, col = "red", lty = 2.5, lwd = 2.5)
+# Calculating AUC
+auc2 <-performance(predict_ROC,"auc")
+# Now converting S4 class to a vector
+auc2 <-unlist(slot(auc2, "y.values"))
+# Adding min and max ROC AUC to the center of the plot
+min_auc2 <-min(round(auc2, digits = 2))
+max_auc2 <-max(round(auc2, digits = 2))
+min_auct2 <-paste(c("min(AUC) = "), min_auc2, sep = "")
+max_auct2 <-paste(c("max(AUC) = "), max_auc2, sep = "")
+legend(0.7, 0.5, c(min_auct2, max_auct2, "\n"), border = "white",cex = 0.7, box.col = "white")
+abline(a= 0, b=1)
+```
+
+```{r}
+opt_cut2 <-function(perf, predict_ROC){
+  cut.ind = mapply(FUN=function(x, y, p){
+    d = (x - 0)^2 + (y-1)^2
+    ind = which(d == min(d))
+    c(sensitivity = y[[ind]], specificity = 1-x[[ind]],
+      cutoff = p[[ind]])
+  }, performance_complete@x.values, performance_complete@y.values, predict_ROC@cutoffs)}
+
+opt_cut2
+```
+
+```{r}
+pred_complete$C_MANIPULATOR = ifelse(pred_complete>0.3251948,1,0)
+```
+
+```{r}
+table_1<-table(pred_complete$C_MANIPULATOR, complete_bal_data$C_MANIPULATOR, dnn = c("Predicted","Actual"))
+table_1
+```
+
+```{r}
+library(robustbase)
+library(caret)
+confusionMatrix(table_1,positive = "1")
+```
+
+#### Balancing the data using SMOTE TECHNIQUE
+
+```{r}
+library(DMwR)
+library(UBL)
+SMOTE_data_complete <- SmoteClassif(C_MANIPULATOR~., as.data.frame(train_Data),C.perc = "balance",dist="HEOM")
+table(SMOTE_data$C_MANIPULATOR)
+```
+
+```{r}
+##Logestic regression
+null_value_3 = glm(C_MANIPULATOR~1, data= SMOTE_data_complete, family = "binomial")
+full_value_3 = glm(C_MANIPULATOR~., data= SMOTE_data_complete, family = "binomial")
+#Forward Selection
+step(null_value_3, scope=list(lower=null_value_3, upper=full_value_3), direction="forward")
+```
+
+```{r}
+l_r_bal_model_3<- glm(C_MANIPULATOR ~ ACCR + DSRI + SGI + AQI + LEVI,data= SMOTE_data, family = "binomial")
+summary(l_r_bal_model_3)
+l_r_bal_model_3$null.deviance-l_r_bal_model_3$deviance
+```
+
+```{r}
+predict_test_bal3 <-predict.glm(l_r_bal_model_3, newdata = test_Data, type="response")
+```
+
+```{r}
+# Calculating the values for ROC curve
+pred_bal_roc3 <-prediction(predict_test_bal3, test_Data$C_MANIPULATOR)
+perf_bal_roc3 <-performance(pred_bal_roc3,"tpr","fpr")
+# Plotting the ROC curve
+plot(perf_bal_roc3, col = "red", lty = 3, lwd = 3)
+# Calculating AUC
+auc4 <-performance(pred_bal_roc3,"auc")
+# Now converting S4 class to a vector
+auc4 <-unlist(slot(auc4, "y.values"))
+
+# Adding min and max ROC AUC to the center of the plot
+# Adding min and max ROC AUC to the center of the plot
+min_auc5 <-min(round(auc4, digits = 2))
+max_auc5 <-max(round(auc4, digits = 2))
+
+min_auct5 <-paste(c("min(AUC) = "), min_auc5, sep = "")
+max_auct5 <-paste(c("max(AUC) = "), max_auc5, sep = "")
+
+legend(0.7, 0.3, c(min_auct5, max_auct5, "\n"), border = "white", cex = 0.5,box.col = "white")
+abline(a= 0, b=1)
+```
+
+```{r}
+opt.cut4 <-function(perf_bal_roc3, pred_bal_roc3){
+  cut.ind = mapply(FUN=function(x, y, p){
+    d = (x - 0)^2 + (y-1)^2
+    ind = which(d == min(d))
+    c(sensitivity = y[[ind]], specificity = 1-x[[ind]],
+      cutoff = p[[ind]])
+  }, perf_bal_roc3@x.values, perf_bal_roc3@y.values, pred_bal_roc3@cutoffs)}
+
+print(opt.cut4(perf_bal_roc3, pred_bal_roc3))
+
+predict_test_bal3 <-ifelse(predict_test_bal3>0.3706433,1,0)
+
+p_table3<-table(predict_test_bal3, test_Data$C_MANIPULATOR, dnn = c("Predicted","Actual"))
+```
+
+```{r}
+library(robustbase)
+library(caret)
+
+confusionMatrix(p_table3,positive = "1")
+```
+
+The results for Over-sampling Technique:
+
+Sensitivity : 0.9732
+
+Accuracy : 0.8838
+
+The results for SMOTE Approach:
+
+Sensitivity : 0.60000
+
+Accuracy : 0.829
+
+From the above observations, the over- sampling technique is better than the SMOTE method for the complete data set because the sensitivity of over-sampling (0.973) is greater than SMOTE (0.6).
+
+
+
