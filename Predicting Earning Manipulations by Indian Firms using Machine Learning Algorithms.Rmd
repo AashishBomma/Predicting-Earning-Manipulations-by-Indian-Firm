@@ -1,22 +1,6 @@
 
----
-output:
-  html_document: default
-  pdf_document: default
----
----
-# IDS 572 Data Mining Assignment 3 
-## Aashish Bomma(650563462), Vishal Brahmananda(678517159)
-title: "DM_Assignment_2"
-author: "Vishal_Brahmanada(678517159), Aashish Bomma(650563462)"
-date: "2022-11-11"
-output: pdf_document
 
-## Question 1:
-
-### Do you think the Beneish model developed in 1999 will still be relevant to Indian data?**
-
-### Solution:
+**Do you think the Beneish model developed in 1999 will still be relevant to Indian data?**
 
 After Analyzing the dataset, we have found that:
 
@@ -64,11 +48,9 @@ confusionMatrix(table1, positive = "1" )
 *In this kind of situation, where there is a imbalance in the class, We can make use of some of the Machine Learning Algorithms (ie. Classification Trees, Logistic Regression) because they give better accuracy values compared to the Beneish model for such unbalanced data.*
 
 
-## Question 2:
 
-### The number of manipulators is usually much less than non-manipulators (in the accompanying spreadsheet, the percentage of manipulators is less than 4% in the complete data). What kind of modeling problems can one expect when cases in one class are much lower than the other class in a binary classification problem? How can one handle these problems? – To answer this question: Watch “balancing data in R” video uploaded under “R documents”.
+**The number of manipulators is usually much less than non-manipulators (in the accompanying spreadsheet, the percentage of manipulators is less than 4% in the complete data). What kind of modeling problems can one expect when cases in one class are much lower than the other class in a binary classification problem? How can one handle these problems? – To answer this question: Watch “balancing data in R” video uploaded under “R documents”.**
 
-### Solution:
 
 This problem is known as Class-imbalance problem.
 
@@ -134,11 +116,11 @@ process.
 
 -> Here, each models are trained sequentially.
 
-## Question 3:
 
-### Use a sample data (220 cases including 39 manipulators) and develop a logistic regression model that can be used by MCA Technologies Private Limited for predicting probability of earnings manipulation.
 
-### Solution: 
+**Use a sample data (220 cases including 39 manipulators) and develop a logistic regression model that can be used by MCA Technologies Private Limited for predicting probability of earnings manipulation.**
+
+
 
 ```{r}
 library(readxl)
@@ -200,15 +182,15 @@ summary(logistic_regression_model_imp_Var)
 logistic_regression_model_imp_Var$null.deviance-logistic_regression_model_imp_Var$deviance
 ```
 
-## Question 4
 
-### What measure do you use to evaluate the performance of your logistic regression model? How does your model perform on the training and test datasets?
 
-### Solution:
+**What measure do you use to evaluate the performance of your logistic regression model? How does your model perform on the training and test datasets?**
 
-**To evaluate the performance of the logistic regression model on the train data, we check result measures of Null deviance, Residual deviance, AIC,Difference of Null deviance and Residual Deviance.**
 
-**To evaluate the performance of the logistic regression model on the test data, we check result measures of Sensitivity and Accuracy.**
+
+#### To evaluate the performance of the logistic regression model on the train data, we check result measures of Null deviance, Residual deviance, AIC,Difference of Null deviance and Residual Deviance. ####
+
+#### To evaluate the performance of the logistic regression model on the test data, we check result measures of Sensitivity and Accuracy. ####
 
 
 From the above output:
@@ -222,7 +204,7 @@ AIC: 99.691
 Difference of Null deviance and Residual Deviance: 58.89034
 
 
-**We will now measure the performance and accuracy of the test data model**
+#### We will now measure the performance and accuracy of the test data model ####
 
 ```{r}
 predict_target <- predict.glm(logistic_regression_model_imp_Var, sample_test_data, type = "response")
@@ -267,11 +249,11 @@ confusionMatrix(p1_table,positive = "1")
 Sensitivity : 0.8000
 Accuracy : 0.806
 
-## Question 5
 
-### What is the best probability threshold that can be used to assign instances to different classes? Write two functions that receive the output of the ROC performance function and return the best probability thresholds using the distance to (0,1) and Youden’s approach respectively.
 
-### Solution:
+**What is the best probability threshold that can be used to assign instances to different classes? Write two functions that receive the output of the ROC performance function and return the best probability thresholds using the distance to (0,1) and Youden’s approach respectively.**
+
+
 
 The two approaches that receive the output of the ROC performance function and return the best probability thresholds using the distance to (0,1) and Youden’s approach respectively are:
 
@@ -339,9 +321,9 @@ p_table1<-table(predict_target_bal, sample_test_data$C_MANIPULATOR, dnn = c("Pre
 p_table1
 confusionMatrix(p_table1,positive = "1")
 ```
-**Sensitivity : 1.00**
+#### Sensitivity : 1.00 ####
 
-**Accuracy : 0.597**
+#### Accuracy : 0.597 ####
 
 #### 'SMOTE' Approch
 
@@ -415,19 +397,19 @@ library(robustbase)
 library(caret)
 confusionMatrix(p_table2,positive = "1")
 ```
-**Sensitivity : 0.8000**
+#### Sensitivity : 0.8000 ####
 
-**Accuracy : 0.7761**
+#### Accuracy : 0.7761 ####
 
 From the above observations of results, we can say that the over sampling technique is the most effective approach to balance the sample data.
 
 The logistic regression algorithm gives the highest sensitivity in the case of over sampling approach.
 
-## Question 6
 
-### Based on the models developed in questions 4 and 5, suggest a M-score (Manipulator score) that can be used by regulators to identify potential manipulators.
 
-### Solution:
+**Based on the models developed in questions 4 and 5, suggest a M-score (Manipulator score) that can be used by regulators to identify potential manipulators.**
+
+
 
 As per the figure avove in question 5, we see that the "balanced oversampled data" model gives the best performance for the threshold of 0.5165457.
 
@@ -439,11 +421,11 @@ Hence, if the M-Score> -1.077, it means Manuplulators
 if the M-Score<= -1.077, then Non- Manipulators
 
 
-## Question 7
 
-### Develop a decision tree model. What insights do you obtain from the tree model?
 
-### Solution:
+**Develop a decision tree model. What insights do you obtain from the tree model?**
+
+
 
 Decision tree for sample data:
 
@@ -486,7 +468,7 @@ confusionMatrix(dt_train_table, positive = "1")
 print(decision_tree_bal_full)
 ```
 
-**The following are the insights from the decision tree:**
+#### The following are the insights from the decision tree: ####
 
 1. At the top, it is the "Leverage Index(LVGI)". 50% of the data are less than 0.85.
 
@@ -495,11 +477,10 @@ print(decision_tree_bal_full)
 3. If LVGI value is greater than or equal to 0.85, then we go down to the root's left side "Sales Growth Index(SGI)". 69% of the data has SGI>=0.5 with a support of 35%.
 
 
-## Question 8
 
-### Develop a logistic regression model using the complete data set (1200 non-manipulators and 39 manipulators), compare the results with the previous logistic regression model and comment on differences.
+**Develop a logistic regression model using the complete data set (1200 non-manipulators and 39 manipulators), compare the results with the previous logistic regression model and comment on differences.**
 
-### Solution:
+
 
 #### Balancing the data using oversampling
 
