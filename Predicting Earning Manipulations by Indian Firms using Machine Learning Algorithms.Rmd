@@ -2,7 +2,7 @@
 
 **Do you think the Beneish model developed in 1999 will still be relevant to Indian data?**
 
-After Analyzing the dataset, we have found that:
+After Analyzing the dataset, I found that:
 
 The number of observations for Manipulator's =39
 
@@ -42,7 +42,7 @@ library(caret)
 confusionMatrix(table1, positive = "1" )
 ```
 
-*As we can see from the above output of Confusion Matrix, we can see that the accuracy of the model is approximately 85%, which is a good performance.However, in this case the data is unbalanced, and the class of interest (class=1) is a minority classs, we have to consider the performance of the model to correctly predict the class of interest.Considering the class of interest as positive class,we need to focus on the sensitivity value of the model.*
+*As we can see from the above output of Confusion Matrix, we can see that the accuracy of the model is approximately 85%, which is a good performance.However, in this case the data is unbalanced, and the class of interest (class=1) is a minority classs, I considered the performance of the model to correctly predict the class of interest.Considering the class of interest as positive class, I focused on the sensitivity value of the model.*
 *In in case, the sensitivity for the beneish model is around 79%.Thus, we can say that Beneish model is not relevant to the indian data under as it does not take the the issue of unbalanced data into consideration.*
 
 *In this kind of situation, where there is a imbalance in the class, We can make use of some of the Machine Learning Algorithms (ie. Classification Trees, Logistic Regression) because they give better accuracy values compared to the Beneish model for such unbalanced data.*
@@ -174,7 +174,7 @@ full_selection <-glm(C_MANIPULATOR~., data = sample_train_data, family = binomia
 ## Forward Selection for the model
 step(null_selection, scope=list(lower=null_selection, upper=full_selection), direction="forward")
 ```
-From the above output we can see that the important variables DSRI, ACCR, AQI. So, we will use only these important variables to run logestic regression test
+From the above output we can see that the important variables DSRI, ACCR, AQI. So, I used only these important variables to run logestic regression test
 ```{r}
 ## Running Logistic Regression model
 logistic_regression_model_imp_Var <- glm(C_MANIPULATOR~DSRI + SGI + ACCR + AQI, data= sample_train_data, family ="binomial")
@@ -188,9 +188,9 @@ logistic_regression_model_imp_Var$null.deviance-logistic_regression_model_imp_Va
 
 
 
-#### To evaluate the performance of the logistic regression model on the train data, we check result measures of Null deviance, Residual deviance, AIC,Difference of Null deviance and Residual Deviance. ####
+#### To evaluate the performance of the logistic regression model on the train data, I checked result measures of Null deviance, Residual deviance, AIC,Difference of Null deviance and Residual Deviance. ####
 
-#### To evaluate the performance of the logistic regression model on the test data, we check result measures of Sensitivity and Accuracy. ####
+#### To evaluate the performance of the logistic regression model on the test data, I checked result measures of Sensitivity and Accuracy. ####
 
 
 From the above output:
@@ -204,7 +204,7 @@ AIC: 99.691
 Difference of Null deviance and Residual Deviance: 58.89034
 
 
-#### We will now measure the performance and accuracy of the test data model ####
+#### I measured the performance and accuracy of the test data model ####
 
 ```{r}
 predict_target <- predict.glm(logistic_regression_model_imp_Var, sample_test_data, type = "response")
