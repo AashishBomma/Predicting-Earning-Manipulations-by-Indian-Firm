@@ -26,7 +26,7 @@ The original M-score was determined using the formula below:
 *Let's calculate the M-Score for the complete dataset:*
 ```{r}
 library(readxl)
-complete_data_set<- read_excel("C:/Users/vbrahm7/Documents/DM_Assignment_3/IMB579-XLS-ENG.xlsx",sheet="Complete Data")
+complete_data_set<- read_excel("C:/Users/abomma5/Documents/DM_Assignment_3/IMB579-XLS-ENG.xlsx",sheet="Complete Data")
 
 data_set<-complete_data_set
 data_set$Mscore<-((-4.84+(0.92*data_set$DSRI)+(0.528* data_set$GMI) +(0.404* data_set$AQI)+(0.892*data_set$SGI) + (0.115* data_set$DEPI)
